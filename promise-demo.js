@@ -15,16 +15,16 @@
 // 7. 如果出现异步逻辑我们就采用 发布订阅模式 缓存回调 发布时依次执行
 let Promise = require("./promise");
 let p = new Promise((resolve, reject) => {
-    // throw new Error("失败")  
-    // reject("error"); 
-    setTimeout(function(){
-        resolve("success"); 
-    },1000)
-    
+  // throw new Error("失败")  
+  // reject("error"); 
+  setTimeout(function () {
+    resolve("success");
+  }, 1000)
+
 })
 p.then(value => {
-    console.log(value, "成功");
+  console.log(value, "成功");
 }, reason => {
-    console.log(reason, "失败");
+  console.log(reason, "失败");
 })
 console.log(1);
