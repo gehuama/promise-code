@@ -24,8 +24,17 @@ const readFile = (filePath) => {
 // 3. 如果繁华的是一个promise 那么需要判断这个promise的状态。如果promise是成功 就继续将成功的结果传递到外层的成功，如果失败就将promise传递给外层的失败
 // 只有抛出异常，或者返回一个失败的promise才会走失败 其他的都是成功
 let promise2 = readFile('./a.txt').then(data => {
-  return 199;
+  // return 199;
   // throw new Error("错误");
+  return new Promise((resolve, reject) => {
+    setTimeout(()=>{
+      resolve(new Promise((resolve, reject) => {
+        setTimeout(()=>{
+          resolve(500)
+        },1000)
+      }))
+    },1000)
+  })
 })
 promise2.then((data) => {
   console.log(32, data);
