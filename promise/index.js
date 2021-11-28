@@ -27,12 +27,12 @@ const resolvePromise = (x, promise2, resolve, reject) => {
         // 把x作为this抛出去
         // 注意：这里不能用 x.then() x.then 如果then方法是通过defineProperty来定义的会再次调用get方法
         then.call(x, (y) => {
-          if(called) return;
+          if (called) return;
           called = true;
           // 不停的解析直到是一个普通值为止
-          resolvePromise(y,promise2,resolve, reject);
+          resolvePromise(y, promise2, resolve, reject);
         }, (r) => {
-          if(called) return;
+          if (called) return;
           called = true;
           reject(r);
         });
@@ -40,7 +40,7 @@ const resolvePromise = (x, promise2, resolve, reject) => {
         resolve(x); // 直接用x作为成功的结果
       }
     } catch (e) {
-      if(called) return;
+      if (called) return;
       called = true;
       return reject(e);
     }
@@ -82,6 +82,9 @@ class Promise {
 
   }
   then(onFulfilled, onRejected) { // Promise.prototype.then
+    // 可选参数的含义就是用户不给 就用默认的
+    onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v
+    onRejected = typeof onRejected === 'function' ? onRejected : err => { throw err }
     let promise2 = new Promise((resolve, reject) => {
       // 链式调用的核心 就是处理x和promise2之间的关系
       if (this.state === FULFILLED) {
@@ -110,11 +113,10 @@ class Promise {
         this.onResolvedCallbacks.push(() => {
           setTimeout(() => {
             try {
-              console.log("增加自定义的逻辑")
               let x = onFulfilled(this.value)
               resolvePromise(x, promise2, resolve, reject)
             } catch (e) {
-              reject(e)
+              reject(e);
             }
           }, 0)
         })
@@ -124,7 +126,7 @@ class Promise {
               let x = onRejected(this.reason);
               resolvePromise(x, promise2, resolve, reject)
             } catch (e) {
-              reject(e)
+              reject(e);
             }
           }, 0)
         })
@@ -135,6 +137,19 @@ class Promise {
   }
 }
 
+// 默认测试的时候会调用此方法 会检测这个方法返回的对象是否符合规范 这个对象上需要有promise实例 resolve和reject
+Promise.deferred = function(){
+  let dfd = {}
+  dfd.promise = new Promise((resolve,reject)=>{
+    dfd.resolve = resolve;
+    dfd.reject = reject;
+  })
+  return dfd;
+}
+// 安装检测promise用法插件
+// npm install promises-aplus-tests =g
+// 通过运行下面命令 进行检测
+// promises-aplus-tests promise.3.js
 // 如果想把node中的文件给其他人使用
 // 如下规范即可
 module.exports = Promise;

@@ -45,3 +45,34 @@ const readFile = (filePath) => {
 /**
  * 3. 如果取then的时候出错了就抛出异常，因为编程器人员自定义的对象上可能有then属性
  */
+
+
+/**
+ * 4. then方法中的回调可以忽略， 如果不是函数就会透传给下一个then
+ */
+
+// new Promise((resolve, reject)=>{
+//   resolve(1000);
+// }).then(null,null).then().then((data)=>{
+//   console.log(data);
+// })
+
+new Promise((resolve, reject)=>{
+  resolve(1000);
+}).then(function(data){
+  return data;
+}).then(function(data){
+  return data;
+}).then(function(data){
+  console.log(data);
+})
+
+new Promise((resolve, reject)=>{
+  reject(1000);
+}).then(null, function(err){
+  throw err;
+}).then(null,function(err){
+  throw err;
+}).then(null,function(err){
+  console.log(err);
+})
