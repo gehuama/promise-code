@@ -147,7 +147,7 @@ Promise.deferred = function(){
   return dfd;
 }
 // 安装检测promise用法插件
-// npm install promises-aplus-tests =g
+// npm install promises-aplus-tests -g
 // 通过运行下面命令 进行检测
 // promises-aplus-tests promise.3.js
 // 如果想把node中的文件给其他人使用
