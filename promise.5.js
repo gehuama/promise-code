@@ -50,3 +50,10 @@ MyPromise.all([readFile('./a.txt'), readFile('./b.txt'),1, false]).then(data => 
 }).catch(err => {
   console.log(err)
 })
+
+// 1. 高阶函数 函数扩展 before方法
+// 2. 函数的柯里化（防抖、节流、反柯里化）
+// 3. 高阶函数来处理异步问题 after实现 异步并发统计。补发订阅再来简化流程
+// 发布订阅和观察者模式的区别
+// 4. promise 处理的问题有哪些 1）回调地狱 2）多个请求并发问题 缺点：还是基于回调的
+// promise的实现原理掌握（能写出来）（防抖、节流、反柯里化）
