@@ -12,11 +12,15 @@
 // 5. promise的状态一旦发生改变 就不会再发生变化了 
 // 成功有成功的原因value， 失败有失败的原因reason
 // 6. 如果 new promise 中发生异常 也会执行失败
+// 7. 如果出现异步逻辑我们就采用 发布订阅模式 缓存回调 发布时依次执行
 let Promise = require("./promise");
 let p = new Promise((resolve, reject) => {
     // throw new Error("失败")  
-    reject("error"); 
-    resolve("success"); 
+    // reject("error"); 
+    setTimeout(function(){
+        resolve("success"); 
+    },1000)
+    
 })
 p.then(value => {
     console.log(value, "成功");
