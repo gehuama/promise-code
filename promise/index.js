@@ -57,13 +57,16 @@ class Promise {
     this.onResolvedCallbacks = [];
     this.onRejectedCallbacks = [];
     const resolve = (value) => {
+      // 这里不能用 value.then 方式 因为规范里有写，测试会通不过
+      if (value instanceof Promise) {
+        return value.then(resolve, reject); // 递归解析
+      }
       if (this.state === PENDING) {
         this.value = value;
         this.state = FULFILLED;
         // 拿到所有成功回调
         this.onResolvedCallbacks.forEach(fn => fn())
       }
-
     }
     const reject = (reason) => {
       if (this.state === PENDING) {
@@ -133,14 +136,26 @@ class Promise {
       }
     })
     return promise2;
-
+  }
+  catch(onRejected) {
+    return this.then(null, onRejected);
+  }
+  static resolve(value) { // 我们希望有等待效果就用Promise.resolve
+    return new Promise((resolve, reject) => {
+      resolve(value)
+    })
+  }
+  static reject(reason) { // Promise.reject 不具备等待效果
+    return new Promise((resolve, reject) => {
+      reject(reason)
+    })
   }
 }
 
 // 默认测试的时候会调用此方法 会检测这个方法返回的对象是否符合规范 这个对象上需要有promise实例 resolve和reject
-Promise.deferred = function(){
+Promise.deferred = function () {
   let dfd = {}
-  dfd.promise = new Promise((resolve,reject)=>{
+  dfd.promise = new Promise((resolve, reject) => {
     dfd.resolve = resolve;
     dfd.reject = reject;
   })
