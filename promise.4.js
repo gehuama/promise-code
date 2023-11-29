@@ -54,15 +54,14 @@ Promise.reject(new Promise((resolve, reject) => {
 // 3. Promise.finally
 // 我们有些流程，需要无论成功和失败都能执行(流程会需要一定的时间) finally = then
 
-Promise.prototype.finally = function(cb){
-  return this.then((y)=>{
-    return Promise.resolve(cb()).then(()=>y)
-  },(r)=>{
-    // 因为finally的promise执行出错，会导致不会知晓Promise.resolve的正常逻辑， 所以finally错误为结果
-    return Promise.resolve(cb()).then(()=> {throw r})
-  })
-}
-
+// Promise.prototype.finally = function(cb){
+//   return this.then((y)=>{
+//     return Promise.resolve(cb()).then(()=>y)
+//   },(r)=>{
+//     // 因为finally的promise执行出错，会导致不会知晓Promise.resolve的正常逻辑， 所以finally错误为结果
+//     return Promise.resolve(cb()).then(()=> {throw r})
+//   })
+// }
 Promise.resolve("ok").finally(() => { // finally 并不会影响最终的结果
   console.log("resolve 无论如何都执行");
   return new Promise((resolve, reject)=>{

@@ -24,26 +24,26 @@ const readFile = (filePath) => {
 
 // Promise.all 的特点 就是全成功才成功，有一个失败就失败 执行结果是有顺序的
 
-MyPromise.all = function (promises) {
-  const arr = [];
-  let times = 0; // 计数器就是解决异步并发问题
-  return new Promise((resolve, reject) => {
-    const processResult = (i, val) => {
-      arr[i] = val;
-      if (++times === promises.length) {
-        resolve(arr);
-      }
-    }
-    for (let i = 0; i < promises.length; i++) {
-      let val = promises[i]; // 怎么让一个promise执行？ p.then
-      if (typeof val.then === 'function') {
-        val.then(val => processResult(i, val), reject);
-      } else {
-        processResult(i, val);
-      }
-    }
-  })
-}
+// MyPromise.all = function (promises) {
+//   const arr = [];
+//   let times = 0; // 计数器就是解决异步并发问题
+//   return new Promise((resolve, reject) => {
+//     const processResult = (i, val) => {
+//       arr[i] = val;
+//       if (++times === promises.length) {
+//         resolve(arr);
+//       }
+//     }
+//     for (let i = 0; i < promises.length; i++) {
+//       let val = promises[i]; // 怎么让一个promise执行？ p.then
+//       if (typeof val.then === 'function') {
+//         val.then(val => processResult(i, val), reject);
+//       } else {
+//         processResult(i, val);
+//       }
+//     }
+//   })
+// }
 
 MyPromise.all([readFile('./a.txt'), readFile('./b.txt'),1, false]).then(data => {
   console.log(data)

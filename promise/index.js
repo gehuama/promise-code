@@ -140,6 +140,14 @@ class Promise {
   catch(onRejected) {
     return this.then(null, onRejected);
   }
+  finally(cb) {
+    return this.then((y) => {
+      return Promise.resolve(cb()).then(() => y)
+    }, (r) => {
+      // 因为finally的promise执行出错，会导致不会知晓Promise.resolve的正常逻辑， 所以finally错误为结果
+      return Promise.resolve(cb()).then(() => { throw r })
+    })
+  }
   static resolve(value) { // 我们希望有等待效果就用Promise.resolve
     return new Promise((resolve, reject) => {
       resolve(value)
@@ -148,6 +156,55 @@ class Promise {
   static reject(reason) { // Promise.reject 不具备等待效果
     return new Promise((resolve, reject) => {
       reject(reason)
+    })
+  }
+  static all(promises) {
+    const arr = [];
+    let times = 0; // 计数器就是解决异步并发问题
+    return new Promise((resolve, reject) => {
+      const processResult = (i, val) => {
+        arr[i] = val;
+        if (++times === promises.length) {
+          resolve(arr);
+        }
+      }
+      for (let i = 0; i < promises.length; i++) {
+        let val = promises[i]; // 怎么让一个promise执行？ p.then
+        if (typeof val.then === 'function') {
+          val.then(val => processResult(i, val), reject);
+        } else {
+          processResult(i, val);
+        }
+      }
+    })
+  }
+  /**
+   *  
+   */
+  static allSettled(promises) {
+    const arr = [];
+    let times = 0; // 计数器就是解决异步并发问题
+    return new Promise((resolve, reject) => {
+      // 无论成功还是失败都会调用
+      const processResult = (i, val) => {
+        arr[i] = val;
+        if (++times === promises.length) {
+          resolve(arr);
+        }
+      }
+
+      for (let i = 0; i<promises.length; i++) {
+        let val = promises[i];
+        // 判断val是否是promise, 
+        // 注意：用户在调用allSettled的时候可能传入的不是promise，因此通过判断val.then是不是一个函数，如果是函数就认为是promise
+        if (typeof val.then === 'function') { // 当前是一个promise
+          val.then(
+            val => processResult(i, { status: 'fulfilled', value: val }), // 这里的val是成功的结果，因此需要将val放到value中，status为fulfilled
+            r => processResult(i, { status: 'rejected', reason: r })); // 这里的r是失败的结果，因此需要将r放到reason中，status为rejected 与promise.all 不同的是，这里不会直接reject，而是将失败的结果放到数组中
+        } else { // 当前不是一个promise
+          processResult(i, { status: 'fulfilled', value: val }); // 这里的val是成功的结果，因此需要将val放到value中，status为fulfilled
+        }
+      }
     })
   }
 }
