@@ -49,6 +49,8 @@ const resolvePromise = (x, promise2, resolve, reject) => {
     resolve(x);
   }
 }
+
+
 class Promise {
   constructor(executor) {
     this.value = undefined;
@@ -179,7 +181,10 @@ class Promise {
     })
   }
   /**
-   *  
+   * 所有的promise执行完成，返回对应结果，可能成功可能失败,以数组对象的格式返回[{status:'fulfilled',value: ''},{status:'rejected',reason: ''}]
+   * @param {*} promises 
+   * @returns {Promise} 返回一个promise
+   * 2019年7月发布
    */
   static allSettled(promises) {
     const arr = [];
@@ -193,7 +198,7 @@ class Promise {
         }
       }
 
-      for (let i = 0; i<promises.length; i++) {
+      for (let i = 0; i < promises.length; i++) {
         let val = promises[i];
         // 判断val是否是promise, 
         // 注意：用户在调用allSettled的时候可能传入的不是promise，因此通过判断val.then是不是一个函数，如果是函数就认为是promise
@@ -203,6 +208,65 @@ class Promise {
             r => processResult(i, { status: 'rejected', reason: r })); // 这里的r是失败的结果，因此需要将r放到reason中，status为rejected 与promise.all 不同的是，这里不会直接reject，而是将失败的结果放到数组中
         } else { // 当前不是一个promise
           processResult(i, { status: 'fulfilled', value: val }); // 这里的val是成功的结果，因此需要将val放到value中，status为fulfilled
+        }
+      }
+    })
+  }
+  /** Promise数组中任意一个Promise成功就返回成功，否则所有失败返回失败结果 */
+  static any(promises) {
+    /**
+     * @description: 获取AggregateError
+     * @param {*} errors
+     * @return {*}
+     */
+    const getAggregateError = (errors) => {
+      if (typeof AggregateError === 'function') {
+        /**
+         * AggregateError 是一个新加入到 JavaScript 的内置对象，它是用来表示多个错误的错误集合。
+         * 当你需要抛出多个错误时，你可以使用 AggregateError。
+         * 它是 JavaScript ES2020 引入的新特性。
+         */
+        return new AggregateError(errors, 'All promises were rejected');
+      }
+      var error = new Error('All promises were rejected');
+      error.name = 'AggregateError';
+      error.errors = errors;
+      return error;
+    }
+
+    return new Promise((resolve, reject) => {
+      /** 是否有成功的Promise */
+      let hasResolved = false;
+      /** 定义失败原因数组 */
+      const rejectionReasons = [];
+      /** promise成功一次 */
+      const resolveOnce = (value)=> {
+        if (!hasResolved) {
+          hasResolved = true;
+          resolve(value);
+        }
+      }
+      /**
+      * @description: promise失败检查
+      */
+      const rejectionCheck = (reason) => {
+        rejectionReasons.push(reason);
+        // 所有promise都失败的情况，返回一个AggregateError，来提示失败原因
+        if (rejectionReasons.length === promises.length) {
+          reject(getAggregateError(rejectionReasons));
+        }
+      }
+      for (let i = 0; i < promises.length; i++) {
+        let val = promises[i];
+        // 判断val是否是promise, 
+        // 注意：用户在调用allSettled的时候可能传入的不是promise，因此通过判断val.then是不是一个函数，如果是函数就认为是promise
+        if (typeof val.then === 'function') {
+          // 执行promise 当promise执行成功时，直接返回当前成功promise
+          // 当数组中的任意一个promise完成时,就会改变返回promise的状态,即使之后数组中其他promise也完成时,返回的promise也不再执行resolve或reject
+          // val.then(resolveOnce, rejectionCheck);
+          Promise.resolve(val).then(resolveOnce, rejectionCheck);
+        } else {
+          rejectionCheck()
         }
       }
     })
